@@ -60,6 +60,19 @@ struct ContentView: View {
             Text(zoneTitle)
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(zoneColor)
+
+            if let lastUpdated = model.lastUpdated {
+                Text("Last sensor reading: \(lastUpdated.formatted(date: .omitted, time: .standard))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let audioIssue = model.audioIssue {
+                Label(audioIssue, systemImage: "speaker.slash.fill")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)

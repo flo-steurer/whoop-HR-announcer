@@ -10,7 +10,7 @@ A small iOS 17+ SwiftUI app that receives live heart-rate measurements from a WH
 4. In the official WHOOP app, open Device Settings and enable **Heart Rate Broadcast**.
 5. In HR Announcer, tap **Choose WHOOP**, select the advertised device, configure the range, and tap **Start Announcing**.
 
-The app declares the `bluetooth-central` background mode and restores its central manager after system termination. iOS does not relaunch Bluetooth apps after the user manually force-quits them; reopen the app before the next session.
+The app declares both the `bluetooth-central` and `audio` background modes, and restores its central manager after system termination. This lets Bluetooth heart-rate notifications wake the app and lets spoken coaching play while another app is visible or the phone is locked. iOS does not relaunch Bluetooth apps after the user manually force-quits them; reopen the app before the next session.
 
 ## Behavior
 

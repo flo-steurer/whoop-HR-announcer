@@ -9,6 +9,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var currentHeartRate: Int?
     @Published private(set) var currentZone: HeartRateZoneState?
     @Published private(set) var lastUpdated: Date?
+    @Published private(set) var audioIssue: String?
     @Published private(set) var isSessionActive: Bool
     @Published private(set) var selectedDeviceName: String?
 
@@ -37,6 +38,9 @@ final class AppModel: ObservableObject {
         bluetooth.onDisconnect = { [weak self] in
             self?.handleDisconnect()
         }
+        speech.onAudioSessionStatus = { [weak self] issue in
+            self?.audioIssue = issue
+        }
 
         if isSessionActive {
             DispatchQueue.main.async { [weak self] in
@@ -47,6 +51,7 @@ final class AppModel: ObservableObject {
 
     func startSession() {
         guard settings.isValid else { return }
+        speech.prepare(audioMode: settings.audioMode)
         engine.reset()
         currentZone = nil
         isSessionActive = true
@@ -59,6 +64,7 @@ final class AppModel: ObservableObject {
         defaults.set(false, forKey: Self.sessionActiveKey)
         bluetooth.stopSession()
         speech.stop()
+        audioIssue = nil
         engine.reset()
         currentHeartRate = nil
         currentZone = nil

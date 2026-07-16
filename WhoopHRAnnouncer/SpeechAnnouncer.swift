@@ -2,6 +2,8 @@ import Foundation
 import AVFoundation
 
 final class SpeechAnnouncer: NSObject, AVSpeechSynthesizerDelegate {
+    var onAudioSessionStatus: ((String?) -> Void)?
+
     private let synthesizer = AVSpeechSynthesizer()
     private var currentUtterance: AVSpeechUtterance?
 
@@ -10,12 +12,7 @@ final class SpeechAnnouncer: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer.delegate = self
     }
 
-    func speak(_ text: String, audioMode: OtherAudioMode) {
-        if synthesizer.isSpeaking {
-            currentUtterance = nil
-            synthesizer.stopSpeaking(at: .immediate)
-        }
-
+    func prepare(audioMode: OtherAudioMode) {
         let audioSession = AVAudioSession.sharedInstance()
         let options: AVAudioSession.CategoryOptions = audioMode == .duck
             ? [.duckOthers]
@@ -23,9 +20,24 @@ final class SpeechAnnouncer: NSObject, AVSpeechSynthesizerDelegate {
 
         do {
             try audioSession.setCategory(.playback, mode: .spokenAudio, options: options)
-            try audioSession.setActive(true)
+            onAudioSessionStatus?(nil)
         } catch {
-            // Speech can still succeed with the system's existing audio session.
+            onAudioSessionStatus?("Audio setup failed: \(error.localizedDescription)")
+        }
+    }
+
+    func speak(_ text: String, audioMode: OtherAudioMode) {
+        if synthesizer.isSpeaking {
+            currentUtterance = nil
+            synthesizer.stopSpeaking(at: .immediate)
+        }
+
+        prepare(audioMode: audioMode)
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+            onAudioSessionStatus?(nil)
+        } catch {
+            onAudioSessionStatus?("Audio playback failed: \(error.localizedDescription)")
         }
 
         let utterance = AVSpeechUtterance(string: text)
