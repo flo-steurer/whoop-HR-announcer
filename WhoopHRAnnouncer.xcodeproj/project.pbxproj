@@ -17,6 +17,12 @@
 		100000000000000000000008 /* HeartRateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000008 /* HeartRateParser.swift */; };
 		100000000000000000000009 /* AnnouncementEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000A /* AnnouncementEngineTests.swift */; };
 		10000000000000000000000A /* HeartRateParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000B /* HeartRateParserTests.swift */; };
+		10000000000000000000000B /* WorkoutModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000E /* WorkoutModels.swift */; };
+		10000000000000000000000C /* WorkoutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20000000000000000000000F /* WorkoutRunner.swift */; };
+		10000000000000000000000D /* WorkoutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000010 /* WorkoutStore.swift */; };
+		10000000000000000000000E /* WorkoutPlanViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000011 /* WorkoutPlanViews.swift */; };
+		10000000000000000000000F /* WorkoutModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000012 /* WorkoutModelsTests.swift */; };
+		100000000000000000000010 /* WorkoutRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000013 /* WorkoutRunnerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +49,12 @@
 		20000000000000000000000B /* HeartRateParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateParserTests.swift; sourceTree = "<group>"; };
 		20000000000000000000000C /* HR Announcer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "HR Announcer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		20000000000000000000000D /* WhoopHRAnnouncerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhoopHRAnnouncerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		20000000000000000000000E /* WorkoutModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutModels.swift; sourceTree = "<group>"; };
+		20000000000000000000000F /* WorkoutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRunner.swift; sourceTree = "<group>"; };
+		200000000000000000000010 /* WorkoutStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutStore.swift; sourceTree = "<group>"; };
+		200000000000000000000011 /* WorkoutPlanViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutPlanViews.swift; sourceTree = "<group>"; };
+		200000000000000000000012 /* WorkoutModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutModelsTests.swift; sourceTree = "<group>"; };
+		200000000000000000000013 /* WorkoutRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRunnerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +95,10 @@
 				200000000000000000000006 /* SpeechAnnouncer.swift */,
 				200000000000000000000007 /* AnnouncementEngine.swift */,
 				200000000000000000000008 /* HeartRateParser.swift */,
+				20000000000000000000000E /* WorkoutModels.swift */,
+				20000000000000000000000F /* WorkoutRunner.swift */,
+				200000000000000000000010 /* WorkoutStore.swift */,
+				200000000000000000000011 /* WorkoutPlanViews.swift */,
 				200000000000000000000009 /* Info.plist */,
 			);
 			path = WhoopHRAnnouncer;
@@ -93,6 +109,8 @@
 			children = (
 				20000000000000000000000A /* AnnouncementEngineTests.swift */,
 				20000000000000000000000B /* HeartRateParserTests.swift */,
+				200000000000000000000012 /* WorkoutModelsTests.swift */,
+				200000000000000000000013 /* WorkoutRunnerTests.swift */,
 			);
 			path = WhoopHRAnnouncerTests;
 			sourceTree = "<group>";
@@ -212,6 +230,10 @@
 				100000000000000000000006 /* SpeechAnnouncer.swift in Sources */,
 				100000000000000000000007 /* AnnouncementEngine.swift in Sources */,
 				100000000000000000000008 /* HeartRateParser.swift in Sources */,
+				10000000000000000000000B /* WorkoutModels.swift in Sources */,
+				10000000000000000000000C /* WorkoutRunner.swift in Sources */,
+				10000000000000000000000D /* WorkoutStore.swift in Sources */,
+				10000000000000000000000E /* WorkoutPlanViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,6 +243,8 @@
 			files = (
 				100000000000000000000009 /* AnnouncementEngineTests.swift in Sources */,
 				10000000000000000000000A /* HeartRateParserTests.swift in Sources */,
+				10000000000000000000000F /* WorkoutModelsTests.swift in Sources */,
+				100000000000000000000010 /* WorkoutRunnerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

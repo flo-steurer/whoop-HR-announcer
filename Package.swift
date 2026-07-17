@@ -18,9 +18,16 @@ let package = Package(
                 "ContentView.swift",
                 "Info.plist",
                 "SpeechAnnouncer.swift",
+                "WorkoutPlanViews.swift",
                 "WhoopHRAnnouncerApp.swift"
             ],
-            sources: ["AnnouncementEngine.swift", "HeartRateParser.swift"]
+            sources: [
+                "AnnouncementEngine.swift",
+                "HeartRateParser.swift",
+                "WorkoutModels.swift",
+                "WorkoutRunner.swift",
+                "WorkoutStore.swift"
+            ]
         ),
         .testTarget(
             name: "WhoopHRAnnouncerCoreTests",

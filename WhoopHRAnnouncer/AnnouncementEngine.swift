@@ -138,3 +138,61 @@ struct AnnouncementEngine {
         return .inRange
     }
 }
+
+struct SessionAnnouncementOutput: Equatable {
+    let zone: HeartRateZoneState?
+    let event: AnnouncementEvent?
+    let spokenText: String?
+}
+
+struct SessionAnnouncementCoordinator {
+    private var engine = AnnouncementEngine()
+
+    var stableState: HeartRateZoneState? { engine.stableState }
+
+    mutating func reset() {
+        engine.reset()
+    }
+
+    mutating func ingest(
+        bpm: Int,
+        at timestamp: TimeInterval,
+        configuration: AnnouncementConfiguration,
+        phaseAnnouncement: String? = nil,
+        suppressSpeech: Bool = false
+    ) -> SessionAnnouncementOutput {
+        guard !suppressSpeech else {
+            return SessionAnnouncementOutput(
+                zone: AnnouncementEngine.classify(
+                    bpm: bpm,
+                    configuration: configuration
+                ),
+                event: nil,
+                spokenText: nil
+            )
+        }
+
+        let event = engine.ingest(
+            bpm: bpm,
+            at: timestamp,
+            configuration: configuration
+        )
+        let spokenText: String?
+        switch (phaseAnnouncement, event?.spokenText) {
+        case let (phase?, heartRate?):
+            spokenText = "\(phase) \(heartRate)."
+        case let (phase?, nil):
+            spokenText = phase
+        case let (nil, heartRate?):
+            spokenText = heartRate
+        case (nil, nil):
+            spokenText = nil
+        }
+
+        return SessionAnnouncementOutput(
+            zone: engine.stableState,
+            event: event,
+            spokenText: spokenText
+        )
+    }
+}

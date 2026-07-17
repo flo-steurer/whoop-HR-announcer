@@ -8,6 +8,7 @@ struct ContentView: View {
 
     @ObservedObject var model: AppModel
     @ObservedObject var settings: AppSettings
+    @ObservedObject var workoutStore: WorkoutPlanStore
     @State private var showingDevices = false
     @FocusState private var focusedBPMField: BPMField?
 
@@ -16,8 +17,28 @@ struct ContentView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     heartRateCard
-                    sessionControls
-                    settingsCard
+
+                    if model.activeSessionMode == .workout {
+                        TimelineView(.periodic(from: .now, by: 1)) { _ in
+                            if let presentation = model.workoutPresentation {
+                                workoutCard(presentation)
+                            }
+                        }
+                    } else {
+                        if !model.isSessionActive {
+                            modeCard
+                        }
+                        if model.isSessionActive || workoutStore.selectedMode == .manual {
+                            settingsCard
+                        } else {
+                            workoutSelectionCard
+                        }
+                        sessionControls
+                    }
+
+                    if model.activeSessionMode == .workout {
+                        chooseDeviceButton
+                    }
                     setupCard
                 }
                 .padding()
@@ -79,35 +100,203 @@ struct ContentView: View {
         .background(.background, in: RoundedRectangle(cornerRadius: 20))
     }
 
+    private var modeCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Session", systemImage: "figure.run")
+                .font(.headline)
+            Picker("Session type", selection: $workoutStore.selectedMode) {
+                ForEach(SessionMode.allCases) { mode in
+                    Text(mode.label).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+        .padding()
+        .background(.background, in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var workoutSelectionCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label("Workout Plan", systemImage: "list.bullet.rectangle")
+                .font(.headline)
+
+            if workoutStore.plans.isEmpty {
+                Text("Create a plan before starting a planned workout.")
+                    .foregroundStyle(.secondary)
+            } else {
+                Picker("Plan", selection: $workoutStore.selectedPlanID) {
+                    Text("Choose a plan").tag(nil as UUID?)
+                    ForEach(workoutStore.plans) { plan in
+                        Text(plan.name).tag(plan.id as UUID?)
+                    }
+                }
+                .pickerStyle(.navigationLink)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+
+                if let plan = workoutStore.selectedPlan {
+                    Text(
+                        "\(plan.expandedPhaseCount) phases • \(formatWorkoutDuration(plan.totalDurationSeconds))"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                }
+            }
+
+            NavigationLink {
+                WorkoutPlanLibraryView(store: workoutStore)
+            } label: {
+                Label("Manage Workout Plans", systemImage: "list.bullet")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding()
+        .background(.background, in: RoundedRectangle(cornerRadius: 16))
+    }
+
     private var sessionControls: some View {
         VStack(spacing: 12) {
             Button {
                 model.isSessionActive ? model.stopSession() : model.startSession()
             } label: {
                 Label(
-                    model.isSessionActive ? "Stop Announcing" : "Start Announcing",
+                    sessionButtonTitle,
                     systemImage: model.isSessionActive ? "stop.fill" : "speaker.wave.2.fill"
                 )
                 .font(.headline)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 5)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.borderedProminent)
             .tint(model.isSessionActive ? .red : .accentColor)
-            .disabled(!settings.isValid)
+            .disabled(startIsDisabled)
 
-            Button {
-                showingDevices = true
-                model.scanForDevices()
-            } label: {
+            chooseDeviceButton
+        }
+    }
+
+    private var chooseDeviceButton: some View {
+        Button {
+            showingDevices = true
+            model.scanForDevices()
+        } label: {
+            Label(
+                model.selectedDeviceName.map { "WHOOP: \($0)" } ?? "Choose WHOOP",
+                systemImage: "dot.radiowaves.left.and.right"
+            )
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private func workoutCard(_ presentation: WorkoutPresentation) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
                 Label(
-                    model.selectedDeviceName.map { "WHOOP: \($0)" } ?? "Choose WHOOP",
-                    systemImage: "dot.radiowaves.left.and.right"
+                    presentation.status == .paused ? "Workout Paused" : presentation.planName,
+                    systemImage: presentation.status == .paused ? "pause.circle.fill" : "figure.run"
                 )
-                .frame(maxWidth: .infinity)
+                .font(.headline)
+                Spacer()
+                Text("\(Int((presentation.overallProgress * 100).rounded()))%")
+                    .font(.subheadline.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(presentation.currentPhase.name)
+                    .font(.title2.weight(.bold))
+                if let iterationText = presentation.currentPhase.iterationText {
+                    Text(iterationText)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Text(
+                    "Target \(presentation.currentPhase.minimumBPM)–\(presentation.currentPhase.maximumBPM) BPM"
+                )
+                .font(.headline)
+                .foregroundStyle(.tint)
+            }
+
+            HStack(alignment: .firstTextBaseline) {
+                Text(formatCountdown(presentation.remainingSeconds))
+                    .font(.system(size: 42, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                Text("remaining")
+                    .foregroundStyle(.secondary)
+            }
+
+            ProgressView(value: presentation.overallProgress)
+
+            HStack {
+                Text("Up next")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(presentation.upcomingPhase?.name ?? "Finish")
+                    .fontWeight(.semibold)
+            }
+            .font(.subheadline)
+
+            HStack(spacing: 10) {
+                Button(action: model.previousWorkoutPhase) {
+                    Label("Previous", systemImage: "backward.end.fill")
+                        .labelStyle(.iconOnly)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel("Previous phase")
+                Button {
+                    model.isWorkoutPaused
+                        ? model.resumeWorkout()
+                        : model.pauseWorkout()
+                } label: {
+                    Label(
+                        model.isWorkoutPaused ? "Resume" : "Pause",
+                        systemImage: model.isWorkoutPaused ? "play.fill" : "pause.fill"
+                    )
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.borderedProminent)
+                Button(action: model.nextWorkoutPhase) {
+                    Label("Next", systemImage: "forward.end.fill")
+                        .labelStyle(.iconOnly)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel("Next phase")
+            }
+            .buttonStyle(.bordered)
+
+            Button(role: .destructive, action: model.stopSession) {
+                Label("Stop Workout", systemImage: "stop.fill")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.bordered)
+
+            NavigationLink {
+                WorkoutPlanLibraryView(store: workoutStore)
+            } label: {
+                Label("Manage Workout Plans", systemImage: "list.bullet")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.bordered)
         }
+        .padding()
+        .background(.background, in: RoundedRectangle(cornerRadius: 16))
     }
 
     private var settingsCard: some View {
@@ -205,6 +394,8 @@ struct ContentView: View {
                                 Image(systemName: signalIcon(for: device.signalStrength))
                                     .foregroundStyle(.secondary)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
                         .foregroundStyle(.primary)
                     }
@@ -266,6 +457,7 @@ struct ContentView: View {
                     .multilineTextAlignment(.trailing)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 68)
+                    .contentShape(Rectangle())
                     .focused($focusedBPMField, equals: field)
                 Text("BPM")
                     .foregroundStyle(.secondary)
@@ -279,6 +471,21 @@ struct ContentView: View {
             .accessibilityLabel("\(title) heart rate")
             .accessibilityValue("\(value.wrappedValue) beats per minute")
         }
+    }
+
+    private var startIsDisabled: Bool {
+        if model.isSessionActive { return false }
+        switch workoutStore.selectedMode {
+        case .manual: return !settings.isValid
+        case .workout: return !(workoutStore.selectedPlan?.isValid ?? false)
+        }
+    }
+
+    private var sessionButtonTitle: String {
+        if model.isSessionActive { return "Stop Announcing" }
+        return workoutStore.selectedMode == .workout
+            ? "Start Workout"
+            : "Start Announcing"
     }
 
     private var zoneTitle: String {
@@ -297,6 +504,11 @@ struct ContentView: View {
         case .belowRange, .aboveRange: return .orange
         case nil: return .secondary
         }
+    }
+
+    private func formatCountdown(_ seconds: TimeInterval) -> String {
+        let rounded = max(0, Int(ceil(seconds)))
+        return String(format: "%02d:%02d", rounded / 60, rounded % 60)
     }
 
     private func signalIcon(for rssi: Int) -> String {
