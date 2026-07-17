@@ -29,9 +29,11 @@ struct ContentView: View {
                             modeCard
                         }
                         if model.isSessionActive || workoutStore.selectedMode == .manual {
-                            settingsCard
+                            manualRangeCard
+                            announcementSettingsCard
                         } else {
                             workoutSelectionCard
+                            announcementSettingsCard
                         }
                         sessionControls
                     }
@@ -299,9 +301,9 @@ struct ContentView: View {
         .background(.background, in: RoundedRectangle(cornerRadius: 16))
     }
 
-    private var settingsCard: some View {
+    private var manualRangeCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Label("Announcements", systemImage: "slider.horizontal.3")
+            Label("Manual Range", systemImage: "heart.text.square")
                 .font(.headline)
 
             bpmControl(
@@ -322,36 +324,49 @@ struct ContentView: View {
                     .font(.footnote)
                     .foregroundStyle(.red)
             }
-
-            Divider()
-            intervalStepper(
-                title: "Normal interval",
-                value: $settings.normalInterval,
-                range: 15...600,
-                step: 15
-            )
-            intervalStepper(
-                title: "Outside-range interval",
-                value: $settings.warningInterval,
-                range: 5...120,
-                step: 5
-            )
-            intervalStepper(
-                title: "Boundary confirmation",
-                value: $settings.confirmationDelay,
-                range: 0...15,
-                step: 1
-            )
-
-            Picker("Other audio", selection: $settings.audioMode) {
-                ForEach(OtherAudioMode.allCases) { mode in
-                    Text(mode.label).tag(mode)
-                }
-            }
-            .pickerStyle(.menu)
         }
         .padding()
         .background(.background, in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var announcementSettingsCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Label("Announcements", systemImage: "slider.horizontal.3")
+                .font(.headline)
+
+            announcementSettingsControls
+        }
+        .padding()
+        .background(.background, in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    @ViewBuilder
+    private var announcementSettingsControls: some View {
+        intervalStepper(
+            title: "Normal interval",
+            value: $settings.normalInterval,
+            range: 15...600,
+            step: 15
+        )
+        intervalStepper(
+            title: "Outside-range interval",
+            value: $settings.warningInterval,
+            range: 5...120,
+            step: 5
+        )
+        intervalStepper(
+            title: "Boundary confirmation",
+            value: $settings.confirmationDelay,
+            range: 0...15,
+            step: 1
+        )
+
+        Picker("Other audio", selection: $settings.audioMode) {
+            ForEach(OtherAudioMode.allCases) { mode in
+                Text(mode.label).tag(mode)
+            }
+        }
+        .pickerStyle(.menu)
     }
 
     private var setupCard: some View {
